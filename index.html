@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Henry 160lb 核心运维系统</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --green: #2ecc71;
+            --red: #e74c3c;
+            --orange: #f39c12;
+            --dark: #2c3e50;
+            --white: #ffffff;
+        }
+        body { font-family: -apple-system, "Helvetica Neue", sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--dark); line-height: 1.5; }
+        
+        /* Header & Progress */
+        .card { background: var(--white); border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .header { background: var(--dark); color: white; text-align: center; }
+        .stats-grid { display: flex; justify-content: space-between; margin: 15px 0; font-size: 0.9rem; }
+        .progress-container { background: #eee; height: 12px; border-radius: 6px; overflow: hidden; }
+        #progress-fill { background: var(--green); width: 0%; height: 100%; transition: width 0.5s; }
+
+        /* Weight Tracker */
+        .tracker-input { display: flex; gap: 10px; margin-top: 15px; }
+        input[type="number"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        button { padding: 10px 20px; background: var(--dark); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .weight-history { margin-top: 15px; max-height: 150px; overflow-y: auto; font-size: 0.85rem; border-top: 1px solid #eee; padding-top: 10px; }
+        .history-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #eee; }
+
+        /* Shopping List */
+        h2 { font-size: 1.1rem; margin-top: 0; display: flex; align-items: center; gap: 8px; }
+        .green-zone h2 { color: var(--green); }
+        .red-zone h2 { color: var(--red); }
+        .orange-zone h2 { color: var(--orange); }
+
+        .list-group { margin-bottom: 15px; }
+        .list-title { font-weight: bold; font-size: 0.9rem; background: #f8f9fa; padding: 5px 10px; border-radius: 4px; margin-bottom: 8px; }
+        .item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #fafafa; font-size: 0.95rem; }
+        .item input[type="checkbox"] { transform: scale(1.2); margin-top: 4px; }
+        .trap-note { font-size: 0.75rem; color: #999; display: block; }
+
+        .footer { text-align: center; font-size: 0.75rem; color: #95a5a6; padding: 20px 0; }
+        .tag { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="card header">
+        <h1 style="margin:0; font-size: 1.4rem;">Henry's 160lb 重构计划</h1>
+        <div class="stats-grid">
+            <div>起始: 260lb</div>
+            <div id="current-display">当前: 235lb</div>
+            <div>目标: 160lb</div>
+        </div>
+        <div class="progress-container">
+            <div id="progress-fill"></div>
+        </div>
+        <p id="percent-text" style="font-size: 0.7rem; margin-top: 8px; opacity: 0.8;"></p>
+    </div>
+
+    <div class="card">
+        <h2>⚖️ 每日体重打卡</h2>
+        <div class="tracker-input">
+            <input type="number" id="weight-input" step="0.1" placeholder="输入今日体重 (lb)">
+            <button onclick="saveWeight()">记录</button>
+        </div>
+        <div class="weight-history" id="weight-history">
+            </div>
+    </div>
+
+    <div class="card green-zone">
+        <h2>✅ 绿灯：核心补给 (高蛋白低碳水)</h2>
+        
+        <div class="list-group">
+            <div class="list-title">优质肉/鱼 (非加工)</div>
+            <div class="item"><input type="checkbox"> 🥩 牛排 (肋眼/西冷/菲力)</div>
+            <div class="item"><input type="checkbox"> 🐟 三文鱼 / 鳕鱼 / 虾仁</div>
+            <div class="item"><input type="checkbox"> 🍗 鸡腿肉 (去皮更佳, 拒绝裹粉)</div>
+            <div class="item"><input type="checkbox"> 🥚 鸡蛋 (每天2-3个没问题)</div>
+        </div>
+
+        <div class="list-group">
+            <div class="list-title">大地之光 (非淀粉类蔬菜)</div>
+            <div class="item"><input type="checkbox"> 🥬 菠菜 / 罗马生菜 / 芝麻菜</div>
+            <div class="item"><input type="checkbox"> 🥦 西兰花 / 菜花 / 芦笋</div>
+            <div class="item"><input type="checkbox"> 🥒 黄瓜 / 西葫芦 (Zucchini)</div>
+            <div class="item"><input type="checkbox"> 🥑 牛油果 (优质脂肪核心)</div>
+        </div>
+
+        <div class="list-group">
+            <div class="list-title">液体 & 补剂</div>
+            <div class="item"><input type="checkbox"> 💧 纯净水 / 气泡水 (Seltzer)</div>
+            <div class="item"><input type="checkbox"> 💊 Vitamin C 500mg (固血管)</div>
+            <div class="item"><input type="checkbox"> 🧴 AmeriGel & Eucerin (外用)</div>
+        </div>
+    </div>
+
+    <div class="card red-zone">
+        <h2>❌ 红灯：系统 Bug (直接引发黑棘皮)</h2>
+        <div class="item">🥯 贝果 / 批萨 / 面包 / 汉堡胚</div>
+        <div class="item">🍚 白米饭 / 糯米 / 所有面条 / 饺子皮</div>
+        <div class="item">🍟 炸薯条 / 薯片 / 裹粉炸鸡 (脆皮全是碳水)</div>
+        <div class="item">🥤 含糖饮料 / 奶茶 / 果汁 (液体糖最致命)</div>
+        <div class="item">🌽 玉米 / 土豆 / 芋头 / 红薯 (淀粉类蔬菜)</div>
+        <div class="item">🍌 香蕉 / 葡萄 / 芒果 / 凤梨 (高糖水果)</div>
+    </div>
+
+    <div class="card orange-zone">
+        <h2>⚠️ 橙灯：常见陷阱 (避坑必看)</h2>
+        <div class="item">
+            <div>🥫 调料酱汁
+                <span class="trap-note">避开: 番茄酱、BBQ酱、照烧酱 (全是糖)</span>
+                <span class="tag">首选: 芥末酱、油醋汁、纯盐、胡椒</span>
+            </div>
+        </div>
+        <div class="item">
+            <div>🥛 乳制品
+                <span class="trap-note">避开: 含糖酸奶、低脂牛奶 (低脂往往高糖)</span>
+                <span class="tag">首选: 希腊酸奶(Plain)、无糖杏仁奶</span>
+            </div>
+        </div>
+        <div class="item">
+            <div>🥜 坚果
+                <span class="trap-note">避开: 腰果、开心果 (碳水偏高)</span>
+                <span class="tag">首选: 核桃、夏威夷果、大杏仁</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Henry Body Maintenance OS v2.0 <br>
+        数据仅保存在本地 localStorage
+    </div>
+
+    <script>
+        const startWeight = 260;
+        const targetWeight = 160;
+
+        function updateProgress(current) {
+            const totalToLose = startWeight - targetWeight;
+            const lostSoFar = startWeight - current;
+            let percent = (lostSoFar / totalToLose) * 100;
+            percent = Math.max(0, Math.min(100, percent)); // 限制在0-100
+
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('current-display').innerText = '当前: ' + current + 'lb';
+            document.getElementById('percent-text').innerText = '系统重构已完成 ' + percent.toFixed(1) + '%';
+        }
+
+        function saveWeight() {
+            const input = document.getElementById('weight-input');
+            const val = parseFloat(input.value);
+            if (!val || val > 300 || val < 100) return alert('请输入合理的体重数据');
+
+            const history = JSON.parse(localStorage.getItem('henry_weights') || '[]');
+            const entry = {
+                date: new Date().toLocaleDateString(),
+                weight: val
+            };
+            history.unshift(entry); // 新数据排前面
+            localStorage.setItem('henry_weights', JSON.stringify(history.slice(0, 30))); // 只保留30天
+            
+            input.value = '';
+            renderHistory();
+            updateProgress(val);
+        }
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem('henry_weights') || '[]');
+            const container = document.getElementById('weight-history');
+            if (history.length === 0) {
+                container.innerHTML = '暂无历史记录';
+                updateProgress(235); // 默认显示当前
+                return;
+            }
+            
+            container.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <span>📅 ${item.date}</span>
+                    <span><strong>${item.weight} lb</strong></span>
+                </div>
+            `).join('');
+            
+            updateProgress(history[0].weight);
+        }
+
+        // 初始化加载
+        window.onload = renderHistory;
+    </script>
+</body>
+</html>
